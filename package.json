@@ -26,6 +26,7 @@
     },
     "dependencies": {
         "curl": "^0.1.4",
+        "openssl": "^1.1.0",
         "react-select": "^4.3.1"
     }
 }

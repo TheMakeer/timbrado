@@ -37,14 +37,15 @@ class Formulario extends React.Component {
             codeSelected: "",
             Name: "",
             Rate: "",
-            Base:"",
+            Base: "",
             IsRetention: "",
             IsQuota: "",
             Total: "",
             TotalWithTaxes: "",
-            cfdiTypeSelected:"",
-            Cfdi:"",
+            cfdiTypeSelected: "",
+            Cfdi: "",
         };
+        this.SelectInvoice = React.createRef();
         this.getCatalogs = this.getCatalogs.bind(this);
         this.getCatalogs();
     }
@@ -65,7 +66,7 @@ class Formulario extends React.Component {
                     formasPago: formasPago,
                 });
             },
-            function (error) {
+            (error) => {
                 if (error && error.responseJSON) {
                     console.log("errores", error.responseJSON);
                 }
@@ -94,7 +95,10 @@ class Formulario extends React.Component {
             (result) => {
                 if (result.length > 0) {
                     cfdiUses = result.map((use) => {
-                        return { value: use.Value, label: use.Value+": "+use.Name };
+                        return {
+                            value: use.Value,
+                            label: use.Value + ": " + use.Name,
+                        };
                     });
                 }
                 this.setState({
@@ -165,11 +169,13 @@ class Formulario extends React.Component {
 
     selectInvoice(event) {
         var items = [];
+
         this.setState({
             selectedInvoice: { value: event.value, label: event.label },
         });
+
         fetch("/getInvoice/" + event.value, {
-            method: "GET", // *GET, POST, PUT, DELETE, etc.
+            method: "GET",
             headers: {
                 "Content-Type": "application/json",
             },
@@ -185,11 +191,16 @@ class Formulario extends React.Component {
                         },
                         () => {
                             items = this.state.items.map((element) => {
-                                var subtotal,dicount, discountVal, cantidad,precioUnitario;
+                                var subtotal,
+                                    dicount,
+                                    discountVal,
+                                    cantidad,
+                                    precioUnitario;
 
                                 subtotal = element.amount.toString();
                                 dicount = element.discount_amount.toString();
-                                discountVal = element.discount_percentage.toString();
+                                discountVal =
+                                    element.discount_percentage.toString();
                                 cantidad = element.qty.toString();
                                 precioUnitario = element.rate.toString();
 
@@ -229,6 +240,7 @@ class Formulario extends React.Component {
     buildCfdi() {
         var cfdiName = this.state.invoiceData.name.split("-");
         cfdiName = cfdiName[3];
+
         var newCfdi = {
             Receiver: {
                 Name: this.state.customer,
@@ -243,51 +255,41 @@ class Formulario extends React.Component {
             Date: this.state.invoiceData.creation,
             Items: [],
         };
-
         newCfdi["Items"] = this.state.cfdiItems.map((element) => {
             return element;
         });
-        this.setState({Cfdi:newCfdi}, console.log(this.state.Cfdi))
+        this.setState({ Cfdi: newCfdi });
         return newCfdi;
     }
 
-    enableButton(cfdi) {
-        var flag = true;
-        for (var item in cfdi) {
-            if (isArray(cfdi[item]) || isObject(cfdi[item])) {
-                flag = this.enableButton(cfdi[item]);
-            } else {
-                var obj = cfdi[item];
-                obj = isNumber(obj) || isBoolean(obj) ? toString(obj) : obj;
-                if (obj == "") {
-                    flag = false;
+    generarCfdi(cfdi) {
+        Facturama.Cfdi.Create(
+            cfdi,
+            (result) => {
+                console.log("creacion de una factura", result);
+            },
+            (error) => {
+                if (error && error.responseJSON) {
+                    console.log("errores", error.responseJSON);
+                    var errores = error.responseJSON["ModelState"];
+                    var message = error.responseJSON["Message"];
+                    var errors = "";
+
+                    for (const key in errores) {
+                        if (Object.hasOwnProperty.call(errores, key)) {
+                            const element = errores[key];
+                            errors = errors + element + "\n";
+                        }
+                    }
+
+                    alert(message + ":\n\n" + errors);
                 }
             }
-            if (flag == false) {
-                break;
-            }
-        }
-        return flag;
+        );
     }
 
-    generarCfdi(){
-        Facturama.Cfdi.Create(this.state.Cfdi, (result) => {
-            console.log("creacion de una factura", result);
-
-        }, function (error) {
-            if (error && error.responseJSON) {
-                console.log("errores", error.responseJSON);
-                var errores = error.responseJSON['ModelState'];
-                var message = error.responseJSON['Message'];
-                for (const key in errores) {
-                    if (Object.hasOwnProperty.call(errores, key)) {
-                        const element = errores[key];
-                        alert(message+":\n"+element);
-                    }
-                }
-
-            }
-        });
+    focus() {
+        this.SelectInvoice.current.focus();
     }
 
     render() {
@@ -303,9 +305,9 @@ class Formulario extends React.Component {
                 lineHeight: 2,
             },
         };
-        const Users = (titulo) => (
+        const title = (titulo) => (
             <div style={{ textAlign: "left" }}>
-                <p style={style.label} id="aria-label" htmlFor="selectInvoice">
+                <p style={style.label} id="aria-label">
                     {titulo}
                 </p>
             </div>
@@ -313,11 +315,11 @@ class Formulario extends React.Component {
         let titulo;
 
         const cfdiType = [
-            { value: "I", label: "I" },
-            { value: "E", label: "E" },
-            { value: "T", label: "T" },
-            { value: "N", label: "N" },
-            { value: "P", label: "P" },
+            { value: "I", label: "Ingreso" },
+            { value: "E", label: "Egreso" },
+            { value: "T", label: "Traslado" },
+            { value: "N", label: "Nota de credito" },
+            { value: "P", label: "Pago" },
         ];
         var cont = 0;
         return (
@@ -331,6 +333,7 @@ class Formulario extends React.Component {
                         Selecciona una factura
                     </label>
                     <Select
+                        ref={this.SelectInvoice}
                         inputId="selectInvoice"
                         aria-labelledby="aria-label"
                         options={this.state.invoices}
@@ -340,14 +343,14 @@ class Formulario extends React.Component {
                 </div>
                 <div className="conainter m-3">
                     <form className="row gy-2 gx-3 align-items-center">
-                        {(titulo = Users("CFDI"))}
+                        {(titulo = title("CFDI"))}
                         <div className="col-auto">
                             <label className="visually-hidden"></label>
                             <input
                                 type="text"
                                 className="form-control"
                                 placeholder="NameId"
-                                value={this.state.invoiceData.name || ''}
+                                value={this.state.invoiceData.name || ""}
                                 disabled
                             />
                         </div>
@@ -366,7 +369,7 @@ class Formulario extends React.Component {
                             <label className="visually-hidden"></label>
                             <Select
                                 className="form-control border-0 m-0 py-0"
-                                inputId="selectInvoice"
+                                inputId="cfdiType"
                                 aria-labelledby="aria-label"
                                 name="cfdiType"
                                 options={cfdiType}
@@ -382,7 +385,7 @@ class Formulario extends React.Component {
                             <label className="visually-hidden"></label>
                             <Select
                                 className="form-control border-0 m-0 py-0"
-                                inputId="selectInvoice"
+                                inputId="CfdiUse"
                                 aria-labelledby="aria-label"
                                 options={this.state.cfdiUses}
                                 value={this.state.CfdiUse}
@@ -397,7 +400,7 @@ class Formulario extends React.Component {
                             <label className="visually-hidden"></label>
                             <Select
                                 className="form-control border-0 m-0 py-0"
-                                inputId="selectInvoice"
+                                inputId="formaPago"
                                 aria-labelledby="aria-label"
                                 options={this.state.formasPago}
                                 value={this.state.formaPago}
@@ -412,7 +415,7 @@ class Formulario extends React.Component {
                             <label className="visually-hidden"></label>
                             <Select
                                 className="form-control border-0 m-0 py-0"
-                                inputId="selectInvoice"
+                                inputId="metodoPago"
                                 aria-labelledby="aria-label"
                                 options={this.state.metodosPago}
                                 value={this.state.metodoPago}
@@ -428,11 +431,11 @@ class Formulario extends React.Component {
                             <input
                                 type="text"
                                 className="form-control"
-                                value={this.state.invoiceData.creation || ''}
+                                value={this.state.invoiceData.creation || ""}
                                 disabled
                             />
                         </div>
-                        {(titulo = Users("Cliente"))}
+                        {(titulo = title("Cliente"))}
                         <div className="col-auto">
                             <input
                                 type="text"
@@ -454,7 +457,7 @@ class Formulario extends React.Component {
                                 onChange={this.myChangeHandler}
                             />
                         </div>
-                        {(titulo = Users("Productos y servicios"))}
+                        {(titulo = title("Productos y servicios"))}
                         {this.state.items.length > 0 &&
                             this.state.items.map((i, indexOf) => (
                                 <Productos
@@ -474,12 +477,12 @@ class Formulario extends React.Component {
                             className="btn btn-primary"
                             style={{ marginTop: "2rem" }}
                             onClick={() => {
-                                if (this.enableButton(this.buildCfdi())) {
-
-                                    this.generarCfdi();
-
-                                }else{
-                                    alert("Uno de los campos se encuentra vacio.");
+                                if (!this.state.selectedInvoice) {
+                                    this.focus();
+                                    alert("Seleccione una factura.");
+                                } else {
+                                    // var cfdi = ;
+                                    this.generarCfdi(this.buildCfdi());
                                 }
                             }}
                         >

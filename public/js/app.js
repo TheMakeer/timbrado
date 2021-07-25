@@ -4094,6 +4094,7 @@ var Formulario = /*#__PURE__*/function (_React$Component) {
       cfdiTypeSelected: "",
       Cfdi: ""
     };
+    _this.SelectInvoice = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1__.createRef();
     _this.getCatalogs = _this.getCatalogs.bind(_assertThisInitialized(_this));
 
     _this.getCatalogs();
@@ -4229,7 +4230,6 @@ var Formulario = /*#__PURE__*/function (_React$Component) {
       });
       fetch("/getInvoice/" + event.value, {
         method: "GET",
-        // *GET, POST, PUT, DELETE, etc.
         headers: {
           "Content-Type": "application/json"
         }
@@ -4304,52 +4304,36 @@ var Formulario = /*#__PURE__*/function (_React$Component) {
       });
       this.setState({
         Cfdi: newCfdi
-      }, console.log(this.state.Cfdi));
+      });
       return newCfdi;
     }
   }, {
-    key: "enableButton",
-    value: function enableButton(cfdi) {
-      var flag = true;
-
-      for (var item in cfdi) {
-        if ((0,lodash__WEBPACK_IMPORTED_MODULE_0__.isArray)(cfdi[item]) || (0,lodash__WEBPACK_IMPORTED_MODULE_0__.isObject)(cfdi[item])) {
-          flag = this.enableButton(cfdi[item]);
-        } else {
-          var obj = cfdi[item];
-          obj = (0,lodash__WEBPACK_IMPORTED_MODULE_0__.isNumber)(obj) || (0,lodash__WEBPACK_IMPORTED_MODULE_0__.isBoolean)(obj) ? toString(obj) : obj;
-
-          if (obj == "") {
-            flag = false;
-          }
-        }
-
-        if (flag == false) {
-          break;
-        }
-      }
-
-      return flag;
-    }
-  }, {
     key: "generarCfdi",
-    value: function generarCfdi() {
-      Facturama.Cfdi.Create(this.state.Cfdi, function (result) {
+    value: function generarCfdi(cfdi) {
+      Facturama.Cfdi.Create(cfdi, function (result) {
         console.log("creacion de una factura", result);
       }, function (error) {
         if (error && error.responseJSON) {
           console.log("errores", error.responseJSON);
-          var errores = error.responseJSON['ModelState'];
-          var message = error.responseJSON['Message'];
+          var errores = error.responseJSON["ModelState"];
+          var message = error.responseJSON["Message"];
+          var errors = "";
 
           for (var key in errores) {
             if (Object.hasOwnProperty.call(errores, key)) {
               var element = errores[key];
-              alert(message + ":\n" + element);
+              errors = errors + element + "\n";
             }
           }
+
+          alert(message + ":\n\n" + errors);
         }
       });
+    }
+  }, {
+    key: "focus",
+    value: function focus() {
+      this.SelectInvoice.current.focus();
     }
   }, {
     key: "render",
@@ -4369,7 +4353,7 @@ var Formulario = /*#__PURE__*/function (_React$Component) {
         }
       };
 
-      var Users = function Users(titulo) {
+      var title = function title(titulo) {
         return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("div", {
           style: {
             textAlign: "left"
@@ -4377,7 +4361,6 @@ var Formulario = /*#__PURE__*/function (_React$Component) {
           children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("p", {
             style: style.label,
             id: "aria-label",
-            htmlFor: "selectInvoice",
             children: titulo
           })
         });
@@ -4386,19 +4369,19 @@ var Formulario = /*#__PURE__*/function (_React$Component) {
       var titulo;
       var cfdiType = [{
         value: "I",
-        label: "I"
+        label: "Ingreso"
       }, {
         value: "E",
-        label: "E"
+        label: "Egreso"
       }, {
         value: "T",
-        label: "T"
+        label: "Traslado"
       }, {
         value: "N",
-        label: "N"
+        label: "Nota de credito"
       }, {
         value: "P",
-        label: "P"
+        label: "Pago"
       }];
       var cont = 0;
       return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)("div", {
@@ -4413,6 +4396,7 @@ var Formulario = /*#__PURE__*/function (_React$Component) {
             htmlFor: "selectInvoice",
             children: "Selecciona una factura"
           }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(react_select__WEBPACK_IMPORTED_MODULE_5__.default, {
+            ref: this.SelectInvoice,
             inputId: "selectInvoice",
             "aria-labelledby": "aria-label",
             options: this.state.invoices,
@@ -4423,7 +4407,7 @@ var Formulario = /*#__PURE__*/function (_React$Component) {
           className: "conainter m-3",
           children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)("form", {
             className: "row gy-2 gx-3 align-items-center",
-            children: [titulo = Users("CFDI"), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)("div", {
+            children: [titulo = title("CFDI"), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)("div", {
               className: "col-auto",
               children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("label", {
                 className: "visually-hidden"
@@ -4431,7 +4415,7 @@ var Formulario = /*#__PURE__*/function (_React$Component) {
                 type: "text",
                 className: "form-control",
                 placeholder: "NameId",
-                value: this.state.invoiceData.name || '',
+                value: this.state.invoiceData.name || "",
                 disabled: true
               })]
             }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)("div", {
@@ -4452,7 +4436,7 @@ var Formulario = /*#__PURE__*/function (_React$Component) {
                 className: "visually-hidden"
               }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(react_select__WEBPACK_IMPORTED_MODULE_5__.default, {
                 className: "form-control border-0 m-0 py-0",
-                inputId: "selectInvoice",
+                inputId: "cfdiType",
                 "aria-labelledby": "aria-label",
                 name: "cfdiType",
                 options: cfdiType,
@@ -4466,7 +4450,7 @@ var Formulario = /*#__PURE__*/function (_React$Component) {
                 className: "visually-hidden"
               }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(react_select__WEBPACK_IMPORTED_MODULE_5__.default, {
                 className: "form-control border-0 m-0 py-0",
-                inputId: "selectInvoice",
+                inputId: "CfdiUse",
                 "aria-labelledby": "aria-label",
                 options: this.state.cfdiUses,
                 value: this.state.CfdiUse,
@@ -4479,7 +4463,7 @@ var Formulario = /*#__PURE__*/function (_React$Component) {
                 className: "visually-hidden"
               }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(react_select__WEBPACK_IMPORTED_MODULE_5__.default, {
                 className: "form-control border-0 m-0 py-0",
-                inputId: "selectInvoice",
+                inputId: "formaPago",
                 "aria-labelledby": "aria-label",
                 options: this.state.formasPago,
                 value: this.state.formaPago,
@@ -4492,7 +4476,7 @@ var Formulario = /*#__PURE__*/function (_React$Component) {
                 className: "visually-hidden"
               }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(react_select__WEBPACK_IMPORTED_MODULE_5__.default, {
                 className: "form-control border-0 m-0 py-0",
-                inputId: "selectInvoice",
+                inputId: "metodoPago",
                 "aria-labelledby": "aria-label",
                 options: this.state.metodosPago,
                 value: this.state.metodoPago,
@@ -4506,10 +4490,10 @@ var Formulario = /*#__PURE__*/function (_React$Component) {
               }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("input", {
                 type: "text",
                 className: "form-control",
-                value: this.state.invoiceData.creation || '',
+                value: this.state.invoiceData.creation || "",
                 disabled: true
               })]
-            }), titulo = Users("Cliente"), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("div", {
+            }), titulo = title("Cliente"), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("div", {
               className: "col-auto",
               children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("input", {
                 type: "text",
@@ -4530,7 +4514,7 @@ var Formulario = /*#__PURE__*/function (_React$Component) {
                 value: this.state.rfc,
                 onChange: this.myChangeHandler
               })
-            }), titulo = Users("Productos y servicios"), this.state.items.length > 0 && this.state.items.map(function (i, indexOf) {
+            }), titulo = title("Productos y servicios"), this.state.items.length > 0 && this.state.items.map(function (i, indexOf) {
               return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_Productos__WEBPACK_IMPORTED_MODULE_3__.default, {
                 index: indexOf,
                 item: i,
@@ -4548,10 +4532,13 @@ var Formulario = /*#__PURE__*/function (_React$Component) {
                 marginTop: "2rem"
               },
               onClick: function onClick() {
-                if (_this5.enableButton(_this5.buildCfdi())) {
-                  _this5.generarCfdi();
+                if (!_this5.state.selectedInvoice) {
+                  _this5.focus();
+
+                  alert("Seleccione una factura.");
                 } else {
-                  alert("Uno de los campos se encuentra vacio.");
+                  // var cfdi = ;
+                  _this5.generarCfdi(_this5.buildCfdi());
                 }
               },
               children: "Timbrar"

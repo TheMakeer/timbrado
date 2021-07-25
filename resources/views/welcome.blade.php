@@ -15,7 +15,7 @@
 
     <div class="container mt-5">
         <div class="row justify-content-center">
-         0   <div class="col-md-8">
+               <div class="col-md-8">
                 <div class="card text-center">
                     <div class="card-title mt-2"><h2>Inicio de Sesion</h2></div>
                     <div id="first"></div>
