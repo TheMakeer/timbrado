@@ -9,17 +9,33 @@ use Illuminate\Support\Facades\View;
 
 class ERPNextController extends Controller
 {
-    public function getToken($username = '',$pwd = ''){
+    public function logIn($username = '',$pwd = ''){
         $response = Http::post('http://erp.example.com:8000/api/method/login',[
             'usr' => $username,
             'pwd' => $pwd,
         ]);//inicio de sesion
+        $respuesta = json_decode($response->body(),true);
 
+        if($respuesta['message'] == 'Logged In'){
         $val = $response->headers()['Set-Cookie'][0];
 
         $sid = ERPNextController::setSid($val);
 
-        $response = Http::get('http://erp.example.com:8000/api/method/frappe.core.doctype.user.user.generate_keys?user=',[
+        $response = Http::get('http://erp.example.com:8000/api/resource/User/' . $username,[
+            'sid'=> $sid
+        ]);
+
+        $respuesta = json_decode($response,true);
+
+        $role = $respuesta['data']['roles'][0]['role'];
+
+        }else{
+            return redirect()->back()->with('alert','Las credenciales son incorrectas');
+        }
+
+
+        if($role == 'Administrator'){
+            $response = Http::get('http://erp.example.com:8000/api/method/frappe.core.doctype.user.user.generate_keys?user=',[
             'sid'=> $sid,
             'user' => $username,
         ]);
@@ -32,9 +48,14 @@ class ERPNextController extends Controller
 
         $key =  ERPNextController::getKey(json_decode($response));
 
+        Cookie::queue(Cookie::make('sid', $sid));
         ERPNextController::generateToken($key,$secret);
 
         return redirect()->route('timbrar');
+
+        }else{
+            return redirect()->back()->with('alert','No tienes permisos para timbrar');
+        }
     }
 
     public function setSid($cookie = ''){
@@ -43,7 +64,6 @@ class ERPNextController extends Controller
         $val = ERPNextController::split($val,';',0);
 
         $val = ERPNextController::split($val,'=',1);
-        Cookie::queue(Cookie::make('sid', $val));
 
         return $val;
     }

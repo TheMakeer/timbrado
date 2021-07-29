@@ -17,5 +17,7 @@ require('./components/User');
 
 require('./components/Formulario');
 
+require('./components/Logout');
+
 require('./components/Productos');
 

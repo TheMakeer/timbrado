@@ -14,20 +14,23 @@
 
 
 
-    $response = \Illuminate\Support\Facades\Http::get('http://erp.example.com:8000/api/resource/Sales%20Invoice',[
-            'sid' => \Cookie::get('sid'),
-            'Authorization' => \Cookie::get('token')
-        ]);
+$response = \Illuminate\Support\Facades\Http::get('http://erp.example.com:8000/api/resource/Sales%20Invoice',[
+    'sid' => \Cookie::get('sid'),
+    'Authorization' => \Cookie::get('token')
+]);
 
-        $data = $response['data'];
+$data = $response['data'];
 
-        $invoices = [];
-        foreach ($data as $key => $value) {
-            array_push($invoices,$value['name']);
-        }
+$invoices = [];
+foreach ($data as $key => $value) {
+    array_push($invoices,$value['name']);
+}
 
 @endphp
 <body>
+    <header>
+        <div id="fourth"></div>
+    </header>
 
     <div class="container-ml mt-5">
         <div class="row justify-content-center">

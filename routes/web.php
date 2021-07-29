@@ -25,9 +25,23 @@ Route::get('/formulario', function (){
     return view('formulario');
 })->middleware('check.token')->name('timbrar');
 
+Route::get('/logout', function (){
+    if(\Cookie::get('sid')){
+        print_r(\Cookie::get());
+        $cookie = \Cookie::forget('sid');
+        return redirect('/logout')->withCookie($cookie);
+    }else if(\Cookie::get('token')){
+        $cookie = \Cookie::forget('token');
+        return redirect('/')->withCookie($cookie);
+    }else{
+
+        return redirect()->back()->with('alert','No hay una sesion activa.');
+    }
+
+});
 
 
-Route::get('/check/{username}/{pwd}', [ERPNextController::class, 'getToken'])->name('process');
+Route::get('/check/{username}/{pwd}', [ERPNextController::class, 'logIn'])->name('process');
 
 Route::get('/getInvoice/{invoice}', [ERPNextController::class, 'getInvoice']);
 
